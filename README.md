@@ -1,4 +1,4 @@
-﻿# JioFiber JCOW414 (Sercomm) — Community OpenWrt Port
+# JioFiber Router JCOW414 OpenWrt
 
 [![OpenWrt Version](https://img.shields.io/badge/OpenWrt-23.05%20Airoha-blue.svg)](https://openwrt.org)
 [![Linux Kernel](https://img.shields.io/badge/Kernel-6.18.55-green.svg)](https://kernel.org)
