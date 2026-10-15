@@ -14,34 +14,6 @@ This repository provides the complete **Device Tree Source (`.dts`)**, build rec
 
 ---
 
-## Hardware Specifications
-
-| Component | Specification | Details |
-|---|---|---|
-| **Model** | Sercomm JCOW414 | Manufactured for Reliance Jio Infocomm |
-| **SoC** | EcoNet EN7528HU | Dual-Core MIPS 1004Kc @ 900MHz (4 VPEs, little-endian `mipsel_24kc`) |
-| **RAM** | 512 MB DDR3 | SK Hynix H5TQ4G63EFR (**432 MB usable** system RAM) |
-| **Flash** | 256 MB SPI-NAND + 1 MB SPI-NOR | Micron MT29F2G01 (Firmware/Storage) + Puya P25Q80L (Stage 1 Bootloader) |
-| **Ethernet** | 4x Gigabit LAN Ports | Internal EcoNet switch (1000BASE-T full duplex verified) |
-| **2.4 GHz Wi-Fi** | MediaTek MT7603E | 802.11b/g/n (PCIe Bus 1, `14c3:7603`) |
-| **5 GHz Wi-Fi** | MediaTek MT7613E | 802.11a/n/ac (PCIe Bus 2, `14c3:7663`) |
-| **USB** | 1x USB 2.0 Port | Storage / cellular dongle support |
-| **Failsafe** | Dual-Bank Flash | Bank 1 (`tclinux` / `mtd4`) + Bank 2 (`tclinux_slave` / `mtd7`) |
-
----
-
-## Current Status
-
-- [x] **Linux 6.18 Kernel:** Boots cleanly on EcoNet EN7528HU SoC with full 4 VPE CPU detection.
-- [x] **Memory Management:** Full 432 MB physical DDR3 RAM mapped and operational.
-- [x] **Network Switch:** All 4 Gigabit Ethernet LAN ports active with link speed negotiation.
-- [x] **Web UI:** LuCI bootstrap web administration interface running out of the box with SSL.
-- [x] **Factory `.trx` Packaging:** EcoNet `HDR2` container with custom LZMA compression for stock MTD flasher compatibility.
-- [x] **Zero-Risk Rollback:** Dual-bank safe flashing keeps stock firmware in Bank 2 as an instant fallback.
-- [ ] **GPON SFP/PON:** Optical uplink driver not yet ported to upstream kernel (use as high-performance Gigabit Wi-Fi router / Access Point / Dumb AP).
-
----
-
 ## ⚡ Quick Flashing Guide (No Disassembly Required)
 
 You do **not** need to open your router or solder serial wires. Flashing is performed entirely over the network using the stock web panel and root Telnet shell.
@@ -69,13 +41,12 @@ You do **not** need to open your router or solder serial wires. Flashing is perf
 To inject the root payload into your downloaded backup:
 
 * **On Windows (1-Click Standalone):**  
-  Download [`patch_backup.bat`](https://raw.githubusercontent.com/Asjohn720/jiofiber-jcow414-openwrt/main/tools/patch_backup.bat).  
-  👉 **Drag & drop** your downloaded `RSV..._JCOW414.enc` file directly onto `patch_backup.bat` (or double-click it!).  
-  *(No Python or external tools required — runs out of the box on all Windows versions).*
+  Download [`JioFiber_Universal_Root_Unlocker_For_Windows.bat`](https://raw.githubusercontent.com/Asjohn720/jiofiber-jcow414-openwrt/main/tools/JioFiber_Universal_Root_Unlocker_For_Windows.bat).  
+  👉 **Drag & drop** your downloaded `RSV..._JCOW414.enc` file directly onto `bat` (or double-click it!). 
 
 * **On Linux / macOS (Python):**  
   ```bash
-  python3 tools/patch_backup.py
+  python3 tools/JioFiber_Universal_Root_Unlocker_For_Linux_Mac.py
   ```
 
 *(Advanced users can also manually decrypt and re-encrypt using OpenSSL with passphrase `"BE F2 26 75 7C B1 49 CB 04 CD CA 84 DC 5B E9 55"`).*
@@ -109,7 +80,7 @@ You now have full root access to your JCOW414 router! 🎉
 3. In your router's Telnet shell, download the firmware into RAM (`/tmp`):
    ```sh
    cd /tmp
-   wget http://<YOUR_PC_IP>:8000/openwrt-asjohn720-1.0-jcow414-econet-en7528-jiofiber_jcow414-squashfs-tclinux.trx -O openwrt.trx
+   wget http://<YOUR_PC_IP>:8000/openwrt-jiofiber_jcow414.trx -O openwrt.trx
    ```
 4. Flash the image into **Bank 1 (`tclinux`)** using the `-f` flag:
    ```sh
@@ -189,6 +160,34 @@ If you want to build custom packages or customize your OpenWrt firmware from sou
 
 The dual-bank flashable image will be generated under:  
 `bin/targets/econet/en7528/openwrt-*-squashfs-tclinux.trx`
+
+---
+
+## Hardware Specifications
+
+| Component | Specification | Details |
+|---|---|---|
+| **Model** | Sercomm JCOW414 | Manufactured for Reliance Jio Infocomm |
+| **SoC** | EcoNet EN7528HU | Dual-Core MIPS 1004Kc @ 900MHz (4 VPEs, little-endian `mipsel_24kc`) |
+| **RAM** | 512 MB DDR3 | SK Hynix H5TQ4G63EFR (**432 MB usable** system RAM) |
+| **Flash** | 256 MB SPI-NAND + 1 MB SPI-NOR | Micron MT29F2G01 (Firmware/Storage) + Puya P25Q80L (Stage 1 Bootloader) |
+| **Ethernet** | 4x Gigabit LAN Ports | Internal EcoNet switch (1000BASE-T full duplex verified) |
+| **2.4 GHz Wi-Fi** | MediaTek MT7603E | 802.11b/g/n (PCIe Bus 1, `14c3:7603`) |
+| **5 GHz Wi-Fi** | MediaTek MT7613E | 802.11a/n/ac (PCIe Bus 2, `14c3:7663`) |
+| **USB** | 1x USB 2.0 Port | Storage / cellular dongle support |
+| **Failsafe** | Dual-Bank Flash | Bank 1 (`tclinux` / `mtd4`) + Bank 2 (`tclinux_slave` / `mtd7`) |
+
+---
+
+## Current Status
+
+- [x] **Linux 6.18 Kernel:** Boots cleanly on EcoNet EN7528HU SoC with full 4 VPE CPU detection.
+- [x] **Memory Management:** Full 432 MB physical DDR3 RAM mapped and operational.
+- [x] **Network Switch:** All 4 Gigabit Ethernet LAN ports active with link speed negotiation.
+- [x] **Web UI:** LuCI bootstrap web administration interface running out of the box with SSL.
+- [x] **Factory `.trx` Packaging:** EcoNet `HDR2` container with custom LZMA compression for stock MTD flasher compatibility.
+- [x] **Zero-Risk Rollback:** Dual-bank safe flashing keeps stock firmware in Bank 2 as an instant fallback.
+- [ ] **GPON SFP/PON:** Optical uplink driver not yet ported to upstream kernel (use as high-performance Gigabit Wi-Fi router / Access Point / Dumb AP).
 
 ---
 
