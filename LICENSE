@@ -1,0 +1,56 @@
+﻿MIT License
+
+Copyright (c) 2026 Anand (@Asjohn720) and Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+DISCLAIMER
+================================================================================
+
+1. Purpose and Scope:
+   This project is an independent academic, educational, and hardware preservation
+   research initiative. Its sole purpose is to provide an open-source, community-driven
+   alternative operating system (OpenWrt) for consumer-owned Sercomm JCOW414 hardware.
+
+2. Lawful Interoperability & Hardware Ownership:
+   All research and development activities were conducted strictly on personally owned,
+   fully paid, and retired consumer hardware. These activities are carried out under the
+   lawful doctrine of interoperability research and hardware freedom (including Section
+   52(1)(ab) of the Indian Copyright Act, 1957, and relevant international Fair Use
+   exceptions permitting reverse engineering solely for achieving interoperability).
+
+3. No ISP Infrastructure or Backend Access:
+   At no point was any telecommunications infrastructure, ISP network, optical line
+   terminal (OLT), authentication server, or subscriber management system accessed,
+   targeted, modified, or disrupted. This project does NOT bypass ISP billing, does NOT
+   grant unauthorized network access, and does NOT interact with any live telecommunications
+   network.
+
+4. Intellectual Property & Trademarks:
+   All trademarks, service marks, trade names, product names, and logos appearing in
+   this repository (including "Jio", "JioFiber", "Reliance", and "Sercomm") are the
+   property of their respective owners. Their use here is purely nominative and
+   descriptive to identify compatible hardware. No affiliation, endorsement, or
+   sponsorship by these entities is claimed or implied.
+
+5. Open Source Distribution:
+   No proprietary vendor code or encrypted copyrighted intellectual property is
+   hosted or distributed by this repository. OpenWrt is a free, independently developed
+   operating system governed by the GNU General Public License (GPL).
