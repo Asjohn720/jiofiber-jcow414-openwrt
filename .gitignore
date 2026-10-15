@@ -1,6 +1,5 @@
 ﻿# Compiled firmware images (distribute via GitHub Releases)
 *.bin
-*.trx
 *.img
 *.sig
 *.dump
