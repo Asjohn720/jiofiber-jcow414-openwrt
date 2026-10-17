@@ -1,6 +1,7 @@
 # JioFiber Router JCOW414 OpenWrt
 
 [![OpenWrt Version](https://img.shields.io/badge/OpenWrt-23.05%20Airoha-blue.svg)](https://openwrt.org)
+[![OpenWrt Wiki](https://img.shields.io/badge/OpenWrt%20Wiki-Sercomm%20JCOW414-006699.svg)](https://openwrt.org/toh/sercomm/jcow414)
 [![Linux Kernel](https://img.shields.io/badge/Kernel-6.18.55-green.svg)](https://kernel.org)
 [![SoC](https://img.shields.io/badge/SoC-EcoNet%20EN7528HU-orange.svg)](https://www.airoha.com)
 [![Failsafe](https://img.shields.io/badge/Flash-Dual--Bank%20Protected-brightgreen.svg)](#dual-bank-failsafe--rollback)
@@ -9,6 +10,8 @@
 An unofficial, fully working community OpenWrt port for the **Sercomm JioFiber JCOW414** router (powered by the **EcoNet / Airoha EN7528HU** platform).
 
 This repository provides the complete **Device Tree Source (`.dts`)**, build recipes, automated root patch tools, and step-by-step flashing guides to unlock your JCOW414 router and run modern OpenWrt with LuCI web administration.
+
+> 📖 **Official Hardware Documentation:** [OpenWrt Table of Hardware: Sercomm JCOW414](https://openwrt.org/toh/sercomm/jcow414)
 
 ![OpenWrt LuCI Dashboard on Sercomm JCOW414](docs/screenshots/Openwrt_dashboard.png)
 
@@ -46,7 +49,7 @@ To inject the root payload into your downloaded backup:
 
 * **On Linux / macOS (Python):**  
   ```bash
-  python3 tools/JioFiber_Universal_Root_Unlocker_For_Linux_Mac.py
+  python3 tools/JioFiber_Universal_Root_Unlocker_For_mac_linux.py
   ```
 
 *(Advanced users can also manually decrypt and re-encrypt using OpenSSL with passphrase `"BE F2 26 75 7C B1 49 CB 04 CD CA 84 DC 5B E9 55"`).*
@@ -70,19 +73,20 @@ You now have full root access to your JCOW414 router! 🎉
 
 ---
 
-### Step 2: Download & Flash OpenWrt Image
+### Step 2: Download & Flash OpenWrt Factory Image (.trx)
 
-1. Download the latest pre-compiled **`openwrt-*-squashfs-tclinux.trx`** factory image from [Releases](https://github.com/Asjohn720/jiofiber-jcow414-openwrt/releases).
-2. On your PC, open a terminal in the folder containing the `.trx` file and start a local HTTP server:
+1. Download the latest **`openwrt-asjohn720-1.1-jcow414-econet-en7528-jiofiber_jcow414-squashfs-tclinux.trx`** (or `openwrt-jiofiber_jcow414_v1.1.trx`) from [Releases](https://github.com/Asjohn720/jiofiber-jcow414-openwrt/releases).
+2. On your PC, open a terminal in the folder where you downloaded the `.trx` file and start a local HTTP server:
    ```bash
    python -m http.server 8000
    ```
-3. In your router's Telnet shell, download the firmware into RAM (`/tmp`):
+3. In your router's Telnet shell (`root@192.168.29.1`), download the firmware into RAM (`/tmp`):
    ```sh
    cd /tmp
-   wget http://<YOUR_PC_IP>:8000/openwrt-jiofiber_jcow414.trx -O openwrt.trx
+   # Replace <YOUR_PC_IP> with your computer's actual LAN IP (e.g., 192.168.29.x)
+   wget http://<YOUR_PC_IP>:8000/openwrt-asjohn720-1.1-jcow414-econet-en7528-jiofiber_jcow414-squashfs-tclinux.trx -O openwrt.trx
    ```
-4. Flash the image into **Bank 1 (`tclinux`)** using the `-f` flag:
+4. Flash the factory image into **Bank 1 (`tclinux`)** using the mandatory `-f` force flag:
    ```sh
    # IMPORTANT: The -f flag is mandatory to bypass stock Broadcom TRX header check
    mtd -f write /tmp/openwrt.trx tclinux
@@ -92,17 +96,17 @@ You now have full root access to your JCOW414 router! 🎉
 
 ### Step 3: Switch Active Boot Bank & Reboot
 
-Switch the hardware boot flag so the bootloader launches Bank 1:
+Switch the hardware boot flag so the bootloader launches Bank 1 (OpenWrt):
 ```sh
 /usr/bin/sys bootflag swap
 reboot
 ```
 
-After ~60 seconds, connect an Ethernet cable to **LAN Port 1** and open your browser:
+After ~60 seconds, connect an Ethernet cable to **LAN Port 1** (green & amber LEDs will blink) and open your browser:
 ```
 http://192.168.1.1
 ```
-You will be greeted by the **OpenWrt LuCI Dashboard**!
+You will be greeted by the **OpenWrt LuCI Dashboard**! 🎉
 
 ---
 
@@ -167,15 +171,17 @@ The dual-bank flashable image will be generated under:
 
 | Component | Specification | Details |
 |---|---|---|
-| **Model** | Sercomm JCOW414 | Manufactured for Reliance Jio Infocomm |
+| **Model** | Sercomm JCOW414 / JioFiber JCO4032 | Reliance Jio Infocomm Home Gateway |
 | **SoC** | EcoNet EN7528HU | Dual-Core MIPS 1004Kc @ 900MHz (4 VPEs, little-endian `mipsel_24kc`) |
 | **RAM** | 512 MB DDR3 | SK Hynix H5TQ4G63EFR (**432 MB usable** system RAM) |
 | **Flash** | 256 MB SPI-NAND + 1 MB SPI-NOR | Micron MT29F2G01 (Firmware/Storage) + Puya P25Q80L (Stage 1 Bootloader) |
 | **Ethernet** | 4x Gigabit LAN Ports | Internal EcoNet switch (1000BASE-T full duplex verified) |
-| **2.4 GHz Wi-Fi** | MediaTek MT7603E | 802.11b/g/n (PCIe Bus 1, `14c3:7603`) |
-| **5 GHz Wi-Fi** | MediaTek MT7613E | 802.11a/n/ac (PCIe Bus 2, `14c3:7663`) |
-| **USB** | 1x USB 2.0 Port | Storage / cellular dongle support |
+| **LAN LEDs** | Hardware GPHY Offloaded | Green & Amber status LEDs per port driven by internal PHYs |
+| **2.4 GHz Wi-Fi** | MediaTek MT7603E | 802.11b/g/n 2T2R MIMO (PCIe Bus 1, `14c3:7603`) |
+| **5 GHz Wi-Fi** | MediaTek MT7613E | 802.11a/n/ac Wave 2 2T2R MU-MIMO (PCIe Bus 2, `14c3:7663`) |
+| **USB** | 2x USB Ports | USB 2.0 / USB 3.0 Host support (Storage & 4G/5G Dongles) |
 | **Failsafe** | Dual-Bank Flash | Bank 1 (`tclinux` / `mtd4`) + Bank 2 (`tclinux_slave` / `mtd7`) |
+| **Wiki Page** | [OpenWrt ToH](https://openwrt.org/toh/sercomm/jcow414) | Official hardware dataentry & community guide |
 
 ---
 
@@ -183,8 +189,11 @@ The dual-bank flashable image will be generated under:
 
 - [x] **Linux 6.18 Kernel:** Boots cleanly on EcoNet EN7528HU SoC with full 4 VPE CPU detection.
 - [x] **Memory Management:** Full 432 MB physical DDR3 RAM mapped and operational.
-- [x] **Network Switch:** All 4 Gigabit Ethernet LAN ports active with link speed negotiation.
-- [x] **Web UI:** LuCI bootstrap web administration interface running out of the box with SSL.
+- [x] **Network Switch:** All 4 Gigabit Ethernet LAN ports active with link speed negotiation and DSA bridge.
+- [x] **Dual-Band Wi-Fi:** 2.4 GHz (MT7603E) & 5 GHz (MT7613E/MT7663) fully functional with factory NVMEM calibration.
+- [x] **USB 2.0 / USB 3.0 Host:** SuperSpeed xHCI controller active with dual independent 5V VBUS power regulators.
+- [x] **Web UI:** LuCI bootstrap web administration interface running out of the box with SSL at `192.168.1.1`.
+- [x] **Storage Overlay:** Persistent UBIFS writable overlay over MTD-concatenated virtual flash (`rootfs_data`).
 - [x] **Factory `.trx` Packaging:** EcoNet `HDR2` container with custom LZMA compression for stock MTD flasher compatibility.
 - [x] **Zero-Risk Rollback:** Dual-bank safe flashing keeps stock firmware in Bank 2 as an instant fallback.
 - [ ] **GPON SFP/PON:** Optical uplink driver not yet ported to upstream kernel (use as high-performance Gigabit Wi-Fi router / Access Point / Dumb AP).

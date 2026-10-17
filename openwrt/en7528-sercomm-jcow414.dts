@@ -1,15 +1,18 @@
-// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+// SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
 /*
  * Device Tree Source for Sercomm JCOW414 (Reliance JioFiber Home Gateway)
  *
- * Copyright (C) 2026 Anand (@Asjohn720)
+ * Contributed & Maintained by: Anand (@Asjohn720)
  *
- * SoC: EcoNet EN7528HU (Dual-Core MIPS 1004Kc @ 900MHz, 4 VPEs)
- * RAM: 512 MB DDR3 (SK Hynix H5TQ4G63EFR)
- * Flash: 256 MB SPI-NAND (Micron MT29F2G01) + 1 MB SPI-NOR (Puya P25Q80L)
- * 2.4GHz Wi-Fi: MediaTek MT7603E (PCIe Bus 1, 14c3:7603)
- * 5GHz Wi-Fi: MediaTek MT7613E (PCIe Bus 2, 14c3:7663)
- * Ethernet: 4x Gigabit LAN Ports (Internal Switch ports 1-4)
+ * Hardware Specs:
+ * - SoC: EcoNet EN7528HU (Dual-Core MIPS 1004Kc @ 900MHz, 4 VPEs)
+ * - RAM: 512 MB DDR3 (SK Hynix H5TQ4G63EFR)
+ * - Flash: 256 MB SPI-NAND (Micron MT29F2G01) + 1 MB SPI-NOR (Puya P25Q80L)
+ * - 2.4GHz Wi-Fi: MediaTek MT7603E (PCIe Slot 0, 14c3:7603) via NVMEM calibration
+ * - 5GHz Wi-Fi: MediaTek MT7613E / MT7663 (PCIe Slot 1, 14c3:7663) via NVMEM calibration
+ * - Ethernet: 4x Gigabit LAN Ports (Internal Switch ports 1-4 with GPHY Hardware LEDs)
+ * - USB: 1x USB 3.0 + 1x USB 2.0 with independent VBUS regulators
+ * - Storage Layout: UBI Virtual Flash (MTD Concat) for maximum read/write overlay
  */
 
 /dts-v1/;
@@ -18,115 +21,318 @@
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
 
 / {
 	model = "Sercomm JCOW414 (JioFiber)";
-	compatible = "sercomm,jcow414", "econet,en7528", "econet,en751221";
+	compatible = "jiofiber,jcow414", "sercomm,jcow414", "econet,en7528";
 
 	aliases {
-		serial0 = &uart0;
-		led-boot = &led_power_blue;
-		led-failsafe = &led_power_red;
-		led-running = &led_power_green;
-		led-upgrade = &led_power_blue;
-	};
-
-	chosen {
-		bootargs = "console=ttyS0,115200 earlycon";
-		stdout-path = "serial0:115200n8";
+		led-boot = &led_status_red;
+		led-failsafe = &led_status_red;
+		led-running = &led_status_green;
+		led-upgrade = &led_status_blue;
 	};
 
 	memory@0 {
 		device_type = "memory";
-		reg = <0x00002000 0x1b000000>; /* 432 MB usable out of 512 MB */
+		reg = <0x00000000 0x1c000000>;
 	};
 
-	keys {
-		compatible = "gpio-keys";
-
-		reset {
-			label = "reset";
-			gpios = <&gpio 0 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_RESTART>;
-		};
-
-		wps {
-			label = "wps";
-			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_WPS_BUTTON>;
-		};
+	chosen {
+		stdout-path = "/serial@1fbf0000:115200";
+		linux,usable-memory-range = <0x00020000 0x1bfe0000>;
 	};
 
 	leds {
 		compatible = "gpio-leds";
 
-		led_power_red: red {
-			label = "red:status";
-			gpios = <&gpio 27 GPIO_ACTIVE_HIGH>;
+		led_status_red: status-red {
+			color = <LED_COLOR_ID_RED>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&pinctrl 27 GPIO_ACTIVE_LOW>;
 		};
 
-		led_power_green: green {
-			label = "green:status";
-			gpios = <&gpio 25 GPIO_ACTIVE_HIGH>;
+		led_status_green: status-green {
+			color = <LED_COLOR_ID_GREEN>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&pinctrl 25 GPIO_ACTIVE_LOW>;
 		};
 
-		led_power_blue: blue {
-			label = "blue:status";
-			gpios = <&gpio 23 GPIO_ACTIVE_HIGH>;
+		led_status_blue: status-blue {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&pinctrl 23 GPIO_ACTIVE_LOW>;
 		};
 	};
 
-	usb_vbus1: regulator-usb-vbus1 {
+	keys {
+		compatible = "gpio-keys";
+
+		key-reset {
+			label = "reset";
+			gpios = <&pinctrl 0 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+
+		key-wps {
+			label = "wps";
+			gpios = <&pinctrl 4 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
+		};
+	};
+
+	reg_usb1_vbus: regulator-usb1-vbus {
 		compatible = "regulator-fixed";
-		regulator-name = "usb_vbus1";
+		regulator-name = "usb1-vbus";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio 9 GPIO_ACTIVE_HIGH>;
+		gpios = <&pinctrl 9 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
+	};
+
+	/* Second USB port VBUS, enabled unconditionally */
+	reg_usb2_vbus: regulator-usb2-vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "usb2-vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpios = <&pinctrl 11 GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+		regulator-boot-on;
 		regulator-always-on;
 	};
 
-	usb_vbus2: regulator-usb-vbus2 {
-		compatible = "regulator-fixed";
-		regulator-name = "usb_vbus2";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio 11 GPIO_ACTIVE_HIGH>;
-		enable-active-high;
-		regulator-always-on;
-	};
-};
+	virtual_flash {
+		compatible = "mtd-concat";
+		devices = <&rootA &root1>;
 
-&uart0 {
-	status = "okay";
-};
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
 
-&pcie {
-	status = "okay";
-
-	pcie@0,0 {
-		status = "okay";
-
-		/* MediaTek MT7603E 2.4GHz 802.11b/g/n */
-		wifi@0,0 {
-			reg = <0x0000 0 0 0 0>;
-			mediatek,mtd-eeprom = <&romfile 0x2000>;
-		};
-	};
-
-	pcie@1,0 {
-		status = "okay";
-
-		/* MediaTek MT7613E 5GHz 802.11a/n/ac */
-		wifi@1,0 {
-			reg = <0x0800 0 0 0 0>;
-			mediatek,mtd-eeprom = <&romfile 0x8000>;
+			partition@0 {
+				label = "ubi";
+				reg = <0x0 0x0>;
+			};
 		};
 	};
 };
 
-&spi_nand {
+&usb {
 	status = "okay";
+	vbus-supply = <&reg_usb1_vbus>;
+};
+
+&pcie0 {
+	status = "okay";
+};
+
+&pcie1 {
+	status = "okay";
+};
+
+&slot0 {
+	status = "okay";
+
+	wifi@0,0 {
+		compatible = "mediatek,mt76";
+		reg = <0x0000 0 0 0 0>;
+		nvmem-cells = <&macaddr_bl 2>, <&eeprom_reservearea_1c0000>;
+		nvmem-cell-names = "mac-address", "eeprom";
+		ieee80211-freq-limit = <2400000 2500000>;
+	};
+};
+
+&slot1 {
+	status = "okay";
+
+	wifi@0,0 {
+		compatible = "mediatek,mt76";
+		reg = <0x0000 0 0 0 0>;
+		nvmem-cells = <&macaddr_bl 3>, <&eeprom_reservearea_4b000>;
+		nvmem-cell-names = "mac-address", "eeprom";
+		ieee80211-freq-limit = <5000000 6000000>;
+	};
+};
+
+&gmac0 {
+	status = "okay";
+	nvmem-cells = <&macaddr_bl 1>;
+	nvmem-cell-names = "mac-address";
+};
+
+&switch {
+	status = "okay";
+};
+
+&pinctrl {
+	gswp1_led0_pins: gswp1-led0-pins {
+		mux {
+			function = "phy1_led0";
+			groups = "gpio30";
+		};
+	};
+
+	gswp1_led1_pins: gswp1-led1-pins {
+		mux {
+			function = "phy1_led1";
+			groups = "gpio31";
+		};
+	};
+
+	gswp2_led0_pins: gswp2-led0-pins {
+		mux {
+			function = "phy2_led0";
+			groups = "gpio32";
+		};
+	};
+
+	gswp2_led1_pins: gswp2-led1-pins {
+		mux {
+			function = "phy2_led1";
+			groups = "gpio33";
+		};
+	};
+
+	gswp3_led0_pins: gswp3-led0-pins {
+		mux {
+			function = "phy3_led0";
+			groups = "gpio34";
+		};
+	};
+
+	gswp3_led1_pins: gswp3-led1-pins {
+		mux {
+			function = "phy3_led1";
+			groups = "gpio35";
+		};
+	};
+
+	gswp4_led0_pins: gswp4-led0-pins {
+		mux {
+			function = "phy4_led0";
+			groups = "gpio36";
+		};
+	};
+
+	gswp4_led1_pins: gswp4-led1-pins {
+		mux {
+			function = "phy4_led1";
+			groups = "gpio37";
+		};
+	};
+};
+
+&gsw_phy1 {
+	pinctrl-names = "gbe-led";
+	pinctrl-0 = <&gswp1_led0_pins>, <&gswp1_led1_pins>;
+};
+
+&gsw_phy2 {
+	pinctrl-names = "gbe-led";
+	pinctrl-0 = <&gswp2_led0_pins>, <&gswp2_led1_pins>;
+};
+
+&gsw_phy3 {
+	pinctrl-names = "gbe-led";
+	pinctrl-0 = <&gswp3_led0_pins>, <&gswp3_led1_pins>;
+};
+
+&gsw_phy4 {
+	pinctrl-names = "gbe-led";
+	pinctrl-0 = <&gswp4_led0_pins>, <&gswp4_led1_pins>;
+};
+
+&gsw_port1 {
+	label = "lan1";
+	status = "okay";
+};
+
+&gsw_port2 {
+	label = "lan2";
+	status = "okay";
+};
+
+&gsw_port3 {
+	label = "lan3";
+	status = "okay";
+};
+
+&gsw_port4 {
+	label = "lan4";
+	status = "okay";
+};
+
+&gsw_phy1_led0 {
+	color = <LED_COLOR_ID_GREEN>;
+	function = LED_FUNCTION_LAN;
+	function-enumerator = <1>;
+	active-low;
+	status = "okay";
+};
+
+&gsw_phy1_led1 {
+	color = <LED_COLOR_ID_AMBER>;
+	function = LED_FUNCTION_LAN;
+	function-enumerator = <1>;
+	active-low;
+	status = "okay";
+};
+
+&gsw_phy2_led0 {
+	color = <LED_COLOR_ID_GREEN>;
+	function = LED_FUNCTION_LAN;
+	function-enumerator = <2>;
+	active-low;
+	status = "okay";
+};
+
+&gsw_phy2_led1 {
+	color = <LED_COLOR_ID_AMBER>;
+	function = LED_FUNCTION_LAN;
+	function-enumerator = <2>;
+	active-low;
+	status = "okay";
+};
+
+&gsw_phy3_led0 {
+	color = <LED_COLOR_ID_GREEN>;
+	function = LED_FUNCTION_LAN;
+	function-enumerator = <3>;
+	active-low;
+	status = "okay";
+};
+
+&gsw_phy3_led1 {
+	color = <LED_COLOR_ID_AMBER>;
+	function = LED_FUNCTION_LAN;
+	function-enumerator = <3>;
+	active-low;
+	status = "okay";
+};
+
+&gsw_phy4_led0 {
+	color = <LED_COLOR_ID_GREEN>;
+	function = LED_FUNCTION_LAN;
+	function-enumerator = <4>;
+	active-low;
+	status = "okay";
+};
+
+&gsw_phy4_led1 {
+	color = <LED_COLOR_ID_AMBER>;
+	function = LED_FUNCTION_LAN;
+	function-enumerator = <4>;
+	active-low;
+	status = "okay";
+};
+
+&nand {
+	status = "okay";
+	econet,bmt;
+	econet,bbt-table-size = <250>;
 
 	partitions {
 		compatible = "fixed-partitions";
@@ -135,84 +341,102 @@
 
 		partition@0 {
 			label = "bootloader";
-			reg = <0x00000000 0x00040000>;
+			reg = <0x0 0x40000>;
 			read-only;
+
+			nvmem-layout {
+				compatible = "fixed-layout";
+				#address-cells = <1>;
+				#size-cells = <1>;
+
+				macaddr_bl: macaddr@3fe48 {
+					compatible = "mac-base";
+					reg = <0x3fe48 0x6>;
+					#nvmem-cell-cells = <1>;
+				};
+			};
 		};
 
-		romfile: partition@40000 {
+		partition@40000 {
 			label = "romfile";
-			reg = <0x00040000 0x00040000>;
+			reg = <0x40000 0x40000>;
 			read-only;
 		};
 
 		partition@80000 {
 			label = "tclinux";
-			reg = <0x00080000 0x02800000>; /* 40 MB Primary Bank */
+			reg = <0x80000 0x2800000>;
+			econet,enable-remap;
+		};
+
+		/* Nested inside of tclinux */
+		partition1@80000 {
+			label = "tclinux_kernel";
+			reg = <0x80000 0x400000>;
+			econet,enable-remap;
+		};
+
+		/* Concatenated with "unknown" to form the UBI volume */
+		rootA: partition1@480000 {
+			label = "tclinux_rootfs";
+			reg = <0x480000 0x2400000>;
 		};
 
 		partition@2880000 {
 			label = "tclinux_slave";
-			reg = <0x02880000 0x02800000>; /* 40 MB Backup Bank */
+			reg = <0x2880000 0x2800000>;
 		};
 
 		partition@5080000 {
 			label = "opt0";
-			reg = <0x05080000 0x00800000>;
+			reg = <0x5080000 0x800000>;
 		};
 
 		partition@5880000 {
 			label = "opt1";
-			reg = <0x05880000 0x00800000>;
+			reg = <0x5880000 0x800000>;
 		};
 
 		partition@6080000 {
-			label = "ubifs_config";
-			reg = <0x06080000 0x01a00000>;
+			label = "ubifs";
+			reg = <0x6080000 0x1a00000>;
 		};
 
 		partition@7a80000 {
 			label = "config";
-			reg = <0x07a80000 0x00200000>;
+			reg = <0x7a80000 0x200000>;
 		};
 
 		partition@7c80000 {
-			label = "ubifs_data";
-			reg = <0x07c80000 0x05a00000>;
+			label = "ubifs2";
+			reg = <0x7c80000 0x5a00000>;
+		};
+
+		/* Concatenated with tclinux_rootfs to form the UBI volume */
+		root1: partition@d680000 {
+			label = "unknown";
+			reg = <0xd680000 0x740000>;
 		};
 
 		partition@ddc0000 {
 			label = "reservearea";
-			reg = <0x0ddc0000 0x00240000>;
-			read-only;
-		};
-	};
-};
+			reg = <0xddc0000 0x240000>;
 
-&switch {
-	status = "okay";
+			nvmem-layout {
+				compatible = "fixed-layout";
+				#address-cells = <1>;
+				#size-cells = <1>;
 
-	ports {
-		#address-cells = <1>;
-		#size-cells = <0>;
+				/* 5GHz MediaTek MT7613E/MT7663 Calibration */
+				eeprom_reservearea_4b000: eeprom@4b000 {
+					reg = <0x4b000 0x4da8>;
+				};
 
-		port@1 {
-			reg = <1>;
-			label = "lan1";
-		};
-
-		port@2 {
-			reg = <2>;
-			label = "lan2";
-		};
-
-		port@3 {
-			reg = <3>;
-			label = "lan3";
-		};
-
-		port@4 {
-			reg = <4>;
-			label = "lan4";
+				/* 2.4GHz MediaTek MT7603E Calibration */
+				eeprom_reservearea_1c0000: eeprom@1c0000 {
+					reg = <0x1c0000 0x400>;
+				};
+			};
 		};
 	};
 };

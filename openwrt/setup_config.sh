@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # ==============================================================================
 # OpenWrt Build Configuration Setup for Sercomm JioFiber JCOW414
 # Target: EcoNet EN7528HU (MIPS 1004Kc)
@@ -25,7 +25,7 @@ CONFIG_PACKAGE_luci-theme-bootstrap=y
 CONFIG_IMAGEOPT=y
 CONFIG_VERSIONOPT=y
 CONFIG_VERSION_DIST="OpenWrt-Asjohn720"
-CONFIG_VERSION_NUMBER="1.0"
+CONFIG_VERSION_NUMBER="1.1"
 CONFIG_VERSION_CODE="JCOW414"
 EOF
 
